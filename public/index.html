@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Оставьте отзыв о Gio’s Gastrobar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;text-align:center;margin-top:50px;background:#fafafa}
+    h1{margin-bottom:10px;font-size:24px}
+    .stars{font-size:48px;cursor:pointer;margin:20px 0}
+    .star{color:#ddd;display:inline-block;transition:color .2s}
+    .star.selected{color:#ffcc00}
+    input[type=text],input[type=date],input[type=tel],textarea{width:320px;padding:10px;margin:8px 0;font-size:16px;border:1px solid #ccc;border-radius:6px}
+    button{padding:12px 28px;font-size:16px;border:none;border-radius:6px;background:#ff6600;color:#fff;cursor:pointer}
+    button:hover{background:#e55b00}
+    #extraForm{display:none;margin-top:20px}
+  </style>
+</head>
+<body>
+  <h1>Расскажите, как всё прошло</h1><div class="stars" id="stars">
+    <span class="star" data-v="1">★</span>
+    <span class="star" data-v="2">★</span>
+    <span class="star" data-v="3">★</span>
+    <span class="star" data-v="4">★</span>
+    <span class="star" data-v="5">★</span>
+  </div>
+  <div id="extraForm">
+    <input id="fio" type="text" placeholder="ФИО" required><br>
+    <input id="date" type="text" placeholder="Дата визита"required><br>
+    <input id="date" type="date" required><br>
+    <input id="phone" type="tel" placeholder="Контактный номер для обратной связи" required><br>
+    <textarea id="text" placeholder="Опишите впечатления" required></textarea><br>
+  </div>
+  <button onclick="submitReview()">Отправить</button>
+  <script>
+    let rating=0;
+    const stars=[...document.querySelectorAll('.star')];
+    stars.forEach(s=>s.addEventListener('click',()=>{
+      rating=parseInt(s.dataset.v);
+      stars.forEach((x,i)=>x.classList.toggle('selected',i<rating));
+      document.getElementById('extraForm').style.display=(rating<5)?'block':'none';
+    }));
+    async function submitReview(){
+      if(!rating)return alert('Поставьте оценку');
+      if(rating===5){
+        location.href='https://yandex.ru/maps/org/gio_s_gastrobar/217378885487/reviews/?ll=38.987867%2C55.808432&z=16';
+      }else{
+        const fio=document.getElementById('fio').value.trim();
+        const date=document.getElementById('date').value;
+        const phone=document.getElementById('phone').value.trim();
+        const text=document.getElementById('text').value.trim();
+        if(!fio||!date||!phone||!text)return alert('Заполните все поля');
+        await fetch('/send-telegram',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({fio,date,phone,text,rating})
+        });
+        alert('Спасибо за отзыв! Мы постараемся стать лучше.');
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
